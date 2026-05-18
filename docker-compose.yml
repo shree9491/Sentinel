@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gateway_postgres
+    environment:
+      POSTGRES_DB: gateway_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - gateway-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: gateway_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - gateway-network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: gateway_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - gateway-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: gateway_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+    networks:
+      - gateway-network
+
+volumes:
+  pgdata:
+
+networks:
+  gateway-network:
+    driver: bridge
